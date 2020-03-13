@@ -88,10 +88,59 @@ function addDepartment() {
     })
 };
 function addRole() {
-
+    inquirer
+    .prompt([{
+      name: "role",
+      type: "input",
+      message: "Enter role"
+    },{
+        name: "id",
+        type: "input",
+        message: "Enter department id"
+      },{
+        name: "salary",
+        type: "input",
+        message: "Enter salary"
+    }]).then(function(answer){
+        var id = parseInt(answer.id);
+        var salary = parseFloat(answer.salary);
+        var query = "INSERT INTO role (title, salary, department_id) VALUES (?,?,?)";
+        connection.query(query,[answer.role,salary,id], function(err, res) {
+          if (err) throw err;
+          viewRoles();
+          runSearch();
+        });
+    })
 };
 function addEmployee() {
-
+    inquirer
+    .prompt([{
+      name: "first",
+      type: "input",
+      message: "Enter first name"
+    },{
+        name: "last",
+        type: "input",
+        message: "Enter last name"
+      },{
+        name: "id",
+        type: "input",
+        message: "Enter role id"
+    },{
+        name: "manager",
+        type: "input",
+        message: "Enter manager id"
+      }
+    ]).then(function(answer){
+        var id = parseInt(answer.id);
+        var manager = parseFloat(answer.manager);
+        var query = "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)";
+        connection.query(query,[answer.first,answer.last,id,manager], function(err, res) {
+          if (err) throw err;
+          viewEmployees();
+          runSearch();
+        });
+    })
 };
 function viewRoles() {
     var query = "SELECT * FROM role";
@@ -110,7 +159,7 @@ function viewDepartments() {
     });
 };
 function viewEmployees() {
-    var query = "SELECT employee.first_name,employee.last_name,role.title,role.salary,department.name AS department FROM employee INNER JOIN (role INNER JOIN department ON role.department_id=department.id) ON employee.role_id=role.id";
+    var query = "SELECT employee.first_name,employee.last_name, role.title,role.salary,department.name AS department FROM employee INNER JOIN (role INNER JOIN department ON role.department_id=department.id) ON employee.role_id=role.id";
     connection.query(query, function(err, res) {
       if (err) throw err;
       console.table(res)
@@ -119,5 +168,23 @@ function viewEmployees() {
 };
 
 function UpdateEmployeeRole() {
-
+  inquirer
+  .prompt([{
+    name: "id",
+    type: "input",
+    message: "Enter Employee id:"
+  },{
+    name: "role",
+    type: "input",
+    message: "Enter new role id:"
+  }]).then(function(answer){
+    var employee = answer.id;
+    var role = answer.role;
+      var query = "UPDATE employee SET role_id= ? WHERE id = ?";
+      connection.query(query,[role,employee], function(err, res) {
+        if (err) throw err;
+        viewEmployees();
+        runSearch();
+      });
+  })
 };
