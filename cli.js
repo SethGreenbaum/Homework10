@@ -6,7 +6,7 @@ const connection = mysql.createConnection({
   host: "localhost",
   port: 3306,
   user: "root",
-  password: "Paddydog90",
+  password: "",
   database: "employee_tracker"
 });
 
@@ -29,6 +29,9 @@ function runSearch() {
           "View all Departments",
           "View all Employees",
           "Update Employee Role",
+          "Delete Employee",
+          "Delete Role",
+          "Delete Department",
           "exit"
         ]
       })
@@ -59,9 +62,21 @@ function runSearch() {
           break;
 
         case "Update Employee Role":
-          UpdateEmployeeRole();
+          updateEmployeeRole();
           break;
 
+        case "Delete Employee":
+          deleteEmployee();
+          break;
+
+        case "Delete Role":
+          deleteRole();
+          break;
+
+        case "Delete Department":
+          deleteDepartment();
+          break;
+  
         case "exit":
           connection.end();
           break;
@@ -82,6 +97,7 @@ function addDepartment() {
         var query = "INSERT INTO department (name) VALUES (?)";
         connection.query(query,[answer.department], function(err, res) {
           if (err) throw err;
+          console.log("added succesfully");
           viewDepartments();
           runSearch();
         });
@@ -107,6 +123,7 @@ function addRole() {
         var query = "INSERT INTO role (title, salary, department_id) VALUES (?,?,?)";
         connection.query(query,[answer.role,salary,id], function(err, res) {
           if (err) throw err;
+          console.log("added succesfully");
           viewRoles();
           runSearch();
         });
@@ -137,6 +154,7 @@ function addEmployee() {
         var query = "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)";
         connection.query(query,[answer.first,answer.last,id,manager], function(err, res) {
           if (err) throw err;
+          console.log("added succesfully");
           viewEmployees();
           runSearch();
         });
@@ -167,7 +185,7 @@ function viewEmployees() {
     });
 };
 
-function UpdateEmployeeRole() {
+function updateEmployeeRole() {
   inquirer
   .prompt([{
     name: "id",
@@ -183,7 +201,59 @@ function UpdateEmployeeRole() {
       var query = "UPDATE employee SET role_id= ? WHERE id = ?";
       connection.query(query,[role,employee], function(err, res) {
         if (err) throw err;
+        console.log("updated succesfully")
         viewEmployees();
+        runSearch();
+      });
+  })
+};
+
+function deleteEmployee() {
+  inquirer
+  .prompt({
+    name: "id",
+    type: "input",
+    message: "Enter Employee id:"
+  }).then(function(answer){
+      var query = "DELETE FROM employee WHERE id=? ";
+      connection.query(query,[answer.id], function(err, res) {
+        if (err) throw err;
+        console.log("deleted succesfully")
+        viewEmployees();
+        runSearch();
+      });
+  })
+};
+
+function deleteRole() {
+  inquirer
+  .prompt({
+    name: "id",
+    type: "input",
+    message: "Enter Role id:"
+  }).then(function(answer){
+      var query = "DELETE FROM role WHERE id=? ";
+      connection.query(query,[answer.id], function(err, res) {
+        if (err) throw err;
+        console.log("deleted succesfully")
+        viewRoles();
+        runSearch();
+      });
+  })
+};
+
+function deleteDepartment() {
+  inquirer
+  .prompt({
+    name: "id",
+    type: "input",
+    message: "Enter Department id:"
+  }).then(function(answer){
+      var query = "DELETE FROM department WHERE id=? ";
+      connection.query(query,[answer.id], function(err, res) {
+        if (err) throw err;
+        console.log("deleted succesfully")
+        viewDepartments();
         runSearch();
       });
   })
