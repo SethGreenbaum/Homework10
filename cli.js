@@ -25,13 +25,17 @@ function runSearch() {
           "Add a Department",
           "Add a Role",
           "Add an Employee",
+          "Add a Manager",
           "View all Roles",
           "View all Departments",
           "View all Employees",
+          "View all Managers",
+          "View Department Payroll Budgets",
           "Update Employee Role",
           "Delete Employee",
           "Delete Role",
           "Delete Department",
+          "Delete Manager",
           "exit"
         ]
       })
@@ -48,6 +52,10 @@ function runSearch() {
         case "Add an Employee":
           addEmployee();
           break;
+
+        case "Add a Manager":
+          addManager();
+          break;
   
         case "View all Roles":
           viewRoles();
@@ -59,6 +67,14 @@ function runSearch() {
         
         case "View all Employees":
           viewEmployees();
+          break;
+        
+        case "View all Managers":
+          viewManagers();
+          break;
+
+        case "View Department Payroll Budgets":
+          viewPayroll();
           break;
 
         case "Update Employee Role":
@@ -76,6 +92,10 @@ function runSearch() {
         case "Delete Department":
           deleteDepartment();
           break;
+
+        case "Delete Manager":
+          deleteManager();
+          break;
   
         case "exit":
           connection.end();
@@ -89,19 +109,33 @@ function runSearch() {
 
 function addDepartment() {
     inquirer
-    .prompt({
+    .prompt([{
       name: "department",
       type: "input",
       message: "Enter Department Name:"
-    }).then(function(answer){
+    }]).then(function(answer){
         var query = "INSERT INTO department (name) VALUES (?)";
         connection.query(query,[answer.department], function(err, res) {
           if (err) throw err;
           console.log("added succesfully");
-          viewDepartments();
           runSearch();
         });
     })
+};
+function addManager() {
+  inquirer
+  .prompt([{
+    name: "manager",
+    type: "input",
+    message: "Enter Manager Name:"
+  }]).then(function(answer){
+      var query = "INSERT INTO manager (manager_name) VALUES (?)";
+      connection.query(query,[answer.manager], function(err, res) {
+        if (err) throw err;
+        console.log("added succesfully");
+        runSearch();
+      });
+  })
 };
 function addRole() {
     inquirer
@@ -109,14 +143,16 @@ function addRole() {
       name: "role",
       type: "input",
       message: "Enter role"
-    },{
-        name: "id",
-        type: "input",
-        message: "Enter department id"
-      },{
-        name: "salary",
-        type: "input",
-        message: "Enter salary"
+    },
+    {
+      name: "id",
+      type: "input",
+      message: "Enter department id"
+    },
+    {
+      name: "salary",
+      type: "input",
+      message: "Enter salary"
     }]).then(function(answer){
         var id = parseInt(answer.id);
         var salary = parseFloat(answer.salary);
@@ -130,24 +166,26 @@ function addRole() {
     })
 };
 function addEmployee() {
-    inquirer
-    .prompt([{
+    inquirer.prompt([{
       name: "first",
       type: "input",
       message: "Enter first name"
-    },{
-        name: "last",
-        type: "input",
-        message: "Enter last name"
-      },{
-        name: "id",
-        type: "input",
-        message: "Enter role id"
-    },{
-        name: "manager",
-        type: "input",
-        message: "Enter manager id"
-      }
+    },
+    {
+      name: "last",
+      type: "input",
+      message: "Enter last name"
+    },
+    {
+      name: "id",
+      type: "input",
+      message: "Enter role id"
+    },
+    {
+      name: "manager",
+      type: "input",
+      message: "Enter manager id"
+    }
     ]).then(function(answer){
         var id = parseInt(answer.id);
         var manager = parseFloat(answer.manager);
@@ -155,7 +193,6 @@ function addEmployee() {
         connection.query(query,[answer.first,answer.last,id,manager], function(err, res) {
           if (err) throw err;
           console.log("added succesfully");
-          viewEmployees();
           runSearch();
         });
     })
@@ -176,13 +213,30 @@ function viewDepartments() {
       runSearch();
     });
 };
+function viewManagers() {
+  var query = "SELECT * FROM manager";
+  connection.query(query, function(err, res) {
+    if (err) throw err;
+    console.table(res)
+    runSearch();
+  });
+};
 function viewEmployees() {
-    var query = "SELECT employee.first_name,employee.last_name, role.title,role.salary,department.name AS department FROM employee INNER JOIN (role INNER JOIN department ON role.department_id=department.id) ON employee.role_id=role.id";
+    var query = "SELECT employee.id,employee.first_name,employee.last_name, role.title,role.salary,department.name AS department,manager.manager_name FROM (employee INNER JOIN manager ON employee.manager_id=manager.id) INNER JOIN (role INNER JOIN department ON role.department_id=department.id) ON employee.role_id=role.id";
     connection.query(query, function(err, res) {
       if (err) throw err;
       console.table(res)
       runSearch();
     });
+};
+
+function viewPayroll() {
+  var query = "SELECT SUM(role.salary) AS payroll,department.name AS department FROM employee INNER JOIN (role INNER JOIN department ON role.department_id=department.id) ON employee.role_id=role.id GROUP BY department.name";
+  connection.query(query, function(err, res) {
+    if (err) throw err;
+    console.table(res)
+    runSearch();
+  });
 };
 
 function updateEmployeeRole() {
@@ -254,6 +308,22 @@ function deleteDepartment() {
         if (err) throw err;
         console.log("deleted succesfully")
         viewDepartments();
+        runSearch();
+      });
+  })
+};
+function deleteManager() {
+  inquirer
+  .prompt({
+    name: "id",
+    type: "input",
+    message: "Enter Manager id:"
+  }).then(function(answer){
+      var query = "DELETE FROM manager WHERE id=? ";
+      connection.query(query,[answer.id], function(err, res) {
+        if (err) throw err;
+        console.log("deleted succesfully")
+        viewManagers();
         runSearch();
       });
   })
